@@ -1,4 +1,12 @@
+```shell
+# develop
+bun dev
 ```
-npm install
-npm run start
+```shell
+# build
+bun run build
+```
+```shell
+# launch
+bun start
 ```
