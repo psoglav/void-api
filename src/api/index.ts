@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import Task from './task'
 import List from './list'
 
-const app = new Hono().basePath('/api')
+const app = new Hono()
 
 app.route('/task', Task)
 app.route('/list', List)
