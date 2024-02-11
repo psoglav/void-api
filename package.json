@@ -1,18 +1,18 @@
 {
+  "type": "module",
   "scripts": {
     "start": "bun build/index.js",
     "dev": "bun run --hot src/index.ts",
-    "build": "bun build src/index.ts --outdir ./build --minify",
-    "migrate": "prisma migrate dev --schema=./src/prisma/schema.prisma",
-    "deploy": "vercel"
+    "build": "bun build src/index.ts --outdir ./build --minify --target node",
+    "migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.1.11",
-    "@prisma/client": "^5.9.1",
     "hono": "^4.0.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@prisma/client": "5.9.1",
     "@types/node": "^20.11.17",
     "prisma": "^5.9.1",
     "ts-node": "^10.9.2"

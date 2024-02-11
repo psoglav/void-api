@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  api:
+    build: .
+    links:
+      - "postgres"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes: 
+      - db:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:5432
+
+volumes:
+  db:
+    driver: local

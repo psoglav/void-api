@@ -7,13 +7,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DB_URL")
 }
 
 model Task {
   id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   text    String
-  status  String
+  // status  String
   list_id String?
 }
 
