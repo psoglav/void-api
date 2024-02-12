@@ -3,8 +3,24 @@ name: Run Tests
 on: push
 
 jobs:
-  type-check:
+  test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres        
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Check out Git repository
@@ -14,6 +30,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 18
+
+      - name: Echo env
+        run: echo $POSTGRES_USER
 
       - name: Install dependencies
         run: npm i
