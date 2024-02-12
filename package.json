@@ -15,8 +15,10 @@
   "devDependencies": {
     "@prisma/client": "5.9.1",
     "@types/node": "^20.11.17",
+    "@vitest/ui": "^1.2.2",
     "prisma": "^5.9.1",
     "ts-node": "^10.9.2",
+    "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^1.2.2"
   }
 }
