@@ -1,23 +1,22 @@
-name: Run Tests
+name: Tests
 
 on: push
 
 jobs:
   test:
-    runs-on: ubuntu-latest'
+    runs-on: ubuntu-latest
 
     env: 
-      POSTGRES_DB: postgres        
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
+      DB_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
+    # TODO: run DB somewhere else, because it takes too much time for the service to start
     services:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_DB: postgres        
-          POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         # Set health checks to wait until postgres has started
@@ -36,11 +35,11 @@ jobs:
         with:
           node-version: 18
 
-      - name: Echo env
-        run: echo ${POSTGRES_USER}
-
       - name: Install dependencies
         run: npm i
+
+      - name: Prepare Prisma
+        run: npx prisma generate && npx prisma db push
 
       - name: Run tests
         run: npm run test
