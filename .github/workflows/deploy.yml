@@ -1,0 +1,24 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: executing remote ssh commands using private key
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            if cd ${{ github.event.repository.name }}; then git pull; else git clone ${{ github.event.repository.ssh_url }}; fi
+            cd ${{ github.event.repository.name }}
+            echo "${{ secrets.ENV_FILE }}" > .env
+            docker compose up --build -d
