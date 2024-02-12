@@ -3,7 +3,7 @@ import { List } from '@prisma/client'
 import api from '@/api'
 
 describe('List', () => {
-  let list: { data: List } | null = null
+  let list: List | null = null
 
   test('POST /list creates a list', async () => {
     const name = "Test List"
@@ -19,18 +19,34 @@ describe('List', () => {
 
     expect(res.status).toBe(200)
 
-    list = await res.json() as { data: List }
+    const data = await res.json() as { data: List }
 
-    expect(list).toEqual({
+    expect(data).toEqual({
       data: {
         id: expect.any(String),
         name
       }
     })
+
+    list = data.data
+  })
+
+  test('PUT /list updates a list', async () => {
+    const res = await api.request(`/list/${list?.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: 'Updated List Name'
+      })
+    })
+
+    expect(res.status).toBe(200)
   })
 
   test('DELETE /list deletes a list', async () => {
-    const res = await api.request(`/list/${list?.data.id}`, {
+    const res = await api.request(`/list/${list?.id}`, {
       method: 'DELETE'
     })
 

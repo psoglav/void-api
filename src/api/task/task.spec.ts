@@ -3,7 +3,7 @@ import { Task } from '@prisma/client'
 import api from '@/api'
 
 describe('Task', () => {
-  let task: { data: Task } | null = null
+  let task: Task | null = null
 
   test('POST /task creates a task', async () => {
     const text = "Write tests using Vitest"
@@ -19,19 +19,35 @@ describe('Task', () => {
 
     expect(res.status).toBe(200)
 
-    task = await res.json() as { data: Task }
+    const data = await res.json() as { data: Task }
 
-    expect(task).toEqual({
+    expect(data).toEqual({
       data: {
         id: expect.any(String),
         text,
         list_id: null
       }
     })
+
+    task = data.data
+  })
+
+  test('PUT /task updates a task', async () => {
+    const res = await api.request(`/task/${task?.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: 'Updated task'
+      })
+    })
+
+    expect(res.status).toBe(200)
   })
 
   test('DELETE /task deletes a task', async () => {
-    const res = await api.request(`/task/${task?.data.id}`, {
+    const res = await api.request(`/task/${task?.id}`, {
       method: 'DELETE'
     })
 
