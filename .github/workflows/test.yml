@@ -9,7 +9,7 @@ jobs:
     env: 
       DB_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
-    # TODO: run DB for testing somewhere else, because it takes too much time for the service to start
+    # TODO: run DB somewhere else, because it takes too much time for the service to start
     services:
       postgres:
         image: postgres:latest
