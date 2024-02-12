@@ -7,20 +7,16 @@ jobs:
     runs-on: ubuntu-latest
 
     env: 
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: db
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_URL: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      DB_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
+    # TODO: run DB for testing somewhere else, because it takes too much time for the service to start
     services:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_USER: ${{env.DB_USER}}
-          POSTGRES_PASSWORD: ${{env.DB_PASSWORD}}
-          POSTGRES_DB: ${{env.DB_NAME}}
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         # Set health checks to wait until postgres has started
