@@ -6,7 +6,7 @@ import prisma from '../../prisma/client'
 const router = new Hono()
 
 const ListSchema = z.object({
-  name: z.string(),
+  name: z.string().min(2).max(24),
 })
 
 router.get(
