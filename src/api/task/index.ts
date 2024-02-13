@@ -1,7 +1,7 @@
-import { Hono, Context } from 'hono'
+import { Hono } from 'hono'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
-import prisma from '../../prisma/client'
+import prisma from '@/prisma/client'
 
 const router = new Hono()
 
@@ -10,19 +10,22 @@ const TaskSchema = z.object({
   list_id: z.string().length(36).optional()
 })
 
+const TaskFiltersSchema = z.object({
+  text: z.string().optional(),
+  list_id: z.string().length(36).optional()
+})
+
 router.get(
   '/:id?',
   zValidator('param', z.object({
     id: z.string().length(36).optional(),
   })),
-  zValidator('query', z.object({
-    list_id: z.string().length(36).optional(),
-  })),
+  zValidator('query', TaskFiltersSchema),
   async (ctx) => {
     const { id } = ctx.req.valid('param')
-    const { list_id } = ctx.req.valid('query')
+    const { list_id, text } = ctx.req.valid('query')
 
-    if (!id && !list_id) return ctx.json({
+    if (!id && !list_id && !text) return ctx.json({
       data: await prisma.task.findMany()
     })
 
@@ -42,9 +45,11 @@ router.get(
 
     const tasks = await prisma.task.findMany({
       where: {
-        list_id
+        OR: [{ text: { contains: text } }, { list_id }]
       }
     })
+
+    if (!tasks) return ctx.notFound()
 
     return ctx.json({
       data: tasks
@@ -54,53 +59,48 @@ router.get(
 
 router.post('/', zValidator('json', TaskSchema), async (ctx) => {
   const { text, list_id } = ctx.req.valid('json')
-  try {
-    if (list_id) {
-      const list = await prisma.list.findUnique({ where: { id: list_id } })
 
-      if (!list) {
-        ctx.status(404)
-        return ctx.json({
-          success: false,
-          message: 'List not found'
-        })
-      }
-    }
-
-    const task = await prisma.task.create({
-      data: {
-        text,
-        list_id
-      },
-    })
-    return ctx.json({ data: task })
-  } catch {
-    ctx.status(400)
+  if (list_id && !(await prisma.list.findUnique({ where: { id: list_id } }))) {
+    ctx.status(404)
     return ctx.json({
       success: false,
-      message: 'Something went wrong'
+      message: 'List not found'
     })
   }
+
+  const task = await prisma.task.create({
+    data: {
+      text,
+      list_id
+    },
+  })
+
+  return ctx.json({ data: task })
 })
 
 router.put(
   '/:id',
   zValidator('param', z.object({ id: z.string().length(36) })),
-  zValidator('json', TaskSchema),
+  zValidator('json', TaskSchema.partial()),
   async (ctx) => {
     const { id } = ctx.req.valid('param')
     const { text, list_id } = ctx.req.valid('json')
-    try {
-      if (list_id) {
-        const list = await prisma.list.findUnique({ where: { id: list_id } })
 
-        if (!list) {
-          ctx.status(404)
-          return ctx.json({
-            success: false,
-            message: 'List not found'
-          })
-        }
+    if (!text && !list_id) {
+      ctx.status(400)
+      return ctx.json({
+        success: false,
+        message: 'Nothing to update'
+      })
+    }
+
+    try {
+      if (list_id && !(await prisma.list.findUnique({ where: { id: list_id } }))) {
+        ctx.status(404)
+        return ctx.json({
+          success: false,
+          message: 'List not found'
+        })
       }
 
       const task = await prisma.task.update({
@@ -112,10 +112,10 @@ router.put(
           list_id
         },
       })
+
       return ctx.json({ success: true, data: task })
-    } catch {
-      ctx.status(400)
-      return ctx.notFound()
+    } catch (e: any) {
+      if (e.code === "P2025") return ctx.notFound()
     }
   }
 )
@@ -132,12 +132,8 @@ router.delete(
         },
       })
       return ctx.json({ success: true })
-    } catch {
-      ctx.status(400)
-      return ctx.json({
-        success: false,
-        message: 'Something went wrong'
-      })
+    } catch (e: any) {
+      if (e.code === "P2025") return ctx.notFound()
     }
   }
 )

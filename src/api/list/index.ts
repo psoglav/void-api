@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
-import prisma from '../../prisma/client'
+import prisma from '@/prisma/client'
 
 const router = new Hono()
 
@@ -18,8 +18,6 @@ router.get(
     if (!id) return ctx.json({
       data: await prisma.list.findMany()
     })
-
-    if (id.length !== 36) return ctx.notFound()
 
     const list = await prisma.list.findUnique({
       where: {
@@ -50,18 +48,10 @@ router.get(
 
 router.post('/', zValidator('json', ListSchema), async (ctx) => {
   const data = ctx.req.valid('json')
-  try {
-    const list = await prisma.list.create({
-      data,
-    })
-    return ctx.json({ data: list })
-  } catch {
-    ctx.status(400)
-    return ctx.json({
-      success: false,
-      message: 'Something went wrong'
-    })
-  }
+  const list = await prisma.list.create({
+    data,
+  })
+  return ctx.json({ data: list })
 })
 
 router.put(
@@ -79,9 +69,8 @@ router.put(
         data,
       })
       return ctx.json({ success: true, data: list })
-    } catch {
-      ctx.status(400)
-      return ctx.notFound()
+    } catch (e: any) {
+      if (e.code === "P2025") return ctx.notFound()
     }
   }
 )
@@ -103,12 +92,8 @@ router.delete(
         }
       })
       return ctx.json({ success: true })
-    } catch {
-      ctx.status(400)
-      return ctx.json({
-        success: false,
-        message: 'Something went wrong'
-      })
+    } catch (e: any) {
+      if (e.code === "P2025") return ctx.notFound()
     }
   }
 )
